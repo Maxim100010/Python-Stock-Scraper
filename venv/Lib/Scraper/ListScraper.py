@@ -1,26 +1,109 @@
+import datetime
+import os
 import re
 import string
-
+import time
+import configparser
 import requests as req
+import os
+import os.path
 from bs4 import BeautifulSoup as bs
+from openpyxl import Workbook
+from openpyxl import load_workbook
 
-def createTickerList ():
+config = configparser.ConfigParser()
+config.read('configuration.ini')
+
+def createTickerList (ExchangeToScan, ClosingPriceLimit):
+
+    a = time.perf_counter()
 
     alphabet = list(string.ascii_uppercase)
 
     #NYSE URL
-    URL_NY = "https://eoddata.com/stocklist/NYSE/"
+    URL_NY = "https://eoddata.com/stocklist/NYSE/" # Takes around 152 seconds
 
     #NASDAQ URL
-    URL_NA = "https://eoddata.com/stocklist/NASDAQ/"
+    URL_NA = "https://eoddata.com/stocklist/NASDAQ/" #Takes around 153 seconds
 
     ticker_list = []
 
-    for letter in alphabet:
-        result = req.get(URL_NA + letter + ".htm")
-        soup = bs(result.text, features="lxml")
-        for tr in soup.find_all("tr", onclick = re.compile("/stockquote/NASDAQ/")):
-            ticker_list.append(str(tr).split("NASDAQ/", 1)[1].split(".", 1)[0])
-    return
+    #Decide which exchange to scan depending on config file
+    if ExchangeToScan == 'both':
+        ticker_list.extend(runNYSEscrape(alphabet, ticker_list, URL_NY, ClosingPriceLimit))
+        ticker_list.extend(runNASDAQscrape(alphabet, ticker_list, URL_NA, ClosingPriceLimit))
+    elif ExchangeToScan == 'nasdaq':
+        ticker_list = runNASDAQscrape(alphabet, ticker_list, URL_NA, ClosingPriceLimit)
+    elif ExchangeToScan == 'nyse':
+        ticker_list = runNYSEscrape(alphabet, ticker_list, URL_NY, ClosingPriceLimit)
+    else:
+        print('Error, ExchangeToScan variable did not match any case')
 
-createTickerList()
+    b = time.perf_counter()
+
+    return ticker_list, b-a
+
+#Scrape NASDAQ listed stocks under desired closing price limit
+def runNASDAQscrape (alphabet, ticker_list, URL_NA, closing_price_limit):
+    for letter in alphabet:
+        #Open URL
+        result = req.get(URL_NA + letter + ".htm")
+        #Parse HTML
+        soup = bs(result.text, features="lxml")
+        #For all HTML 'tr' tags extract ticker and price
+        for tr in soup.find_all("tr", onclick = re.compile("/stockquote/NASDAQ/")):
+            ticker = str(tr).split("NASDAQ/", 1)[1].split(".", 1)[0]
+            closing_price = float(str(tr.td.next_sibling.next_sibling.next_sibling.next_sibling).split(">", 1)[1].split("<", 1)[0].replace(",", "."))
+            if closing_price < float(closing_price_limit):
+                ticker_closingprice_tuple = (ticker, closing_price)
+                ticker_list.append(ticker_closingprice_tuple)
+
+    return ticker_list
+
+#Scrape NYSE listed stocks under desired closing price limit
+def runNYSEscrape (alphabet, ticker_list, URL_NY, closing_price_limit):
+    for letter in alphabet:
+        #Open URL
+        result = req.get(URL_NY + letter + ".htm")
+        #Parse HTML
+        soup = bs(result.text, features="lxml")
+        #For all HTML 'tr' tags extract ticker and price
+        for tr in soup.find_all("tr", onclick = re.compile("/stockquote/NYSE/")):
+            ticker = str(tr).split("NYSE/", 1)[1].split(".", 1)[0]
+            closing_price = float(
+                str(tr.td.next_sibling.next_sibling.next_sibling.next_sibling).split(">", 1)[1].split("<", 1)[
+                    0].replace(",", "."))
+            if closing_price < float(closing_price_limit):
+                ticker_closingprice_tuple = (ticker, closing_price)
+                ticker_list.append(ticker_closingprice_tuple)
+
+    return ticker_list
+
+def createExcelSpreadsheet (ticker_list):
+
+    if os.path.isfile('TickersPrices.xlsx'):
+        wb = load_workbook(filename='TickersPrices.xlsx')
+        ws = wb.active
+    else:
+        wb = Workbook()
+        ws = wb.active
+        ws.title = 'Tickers And Closing Prices'
+        ws['A1'] = 'Current Tickers and prices from ' + str(datetime.date.today())
+        ws['A2'] = 'Currently applied filters'
+        ws['A3'] = 'Exchange: ' + config['DEFAULT']['exchangetoscan'].upper()
+        ws['A4'] = 'Closing price limit: ' + config['DEFAULT']['closingpricelimit']
+        ws['A5'] = 'Ticker'
+        ws['B5'] = 'Price'
+
+    index = 6
+    print(ticker_list)
+    for tup in ticker_list:
+        ws['A' + str(index)] = tup[0]
+        ws['B' + str(index)] = tup[1]
+        index += 1
+
+    wb.save('TickersPrices.xlsx')
+
+
+createExcelSpreadsheet(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit'])[0])
+#print(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit']))
