@@ -1,5 +1,4 @@
 import datetime
-import os
 import re
 import string
 import time
@@ -7,9 +6,12 @@ import configparser
 import requests as req
 import os
 import os.path
+import pandas as pd
+import pyarrow
 from bs4 import BeautifulSoup as bs
 from openpyxl import Workbook
 from openpyxl import load_workbook
+import ExcelManipulator as em
 
 config = configparser.ConfigParser()
 config.read('configuration.ini')
@@ -79,31 +81,9 @@ def runNYSEscrape (alphabet, ticker_list, URL_NY, closing_price_limit):
 
     return ticker_list
 
-def createExcelSpreadsheet (ticker_list):
-
-    if os.path.isfile('TickersPrices.xlsx'):
-        wb = load_workbook(filename='TickersPrices.xlsx')
-        ws = wb.active
-    else:
-        wb = Workbook()
-        ws = wb.active
-        ws.title = 'Tickers And Closing Prices'
-        ws['A1'] = 'Current Tickers and prices from ' + str(datetime.date.today())
-        ws['A2'] = 'Currently applied filters'
-        ws['A3'] = 'Exchange: ' + config['DEFAULT']['exchangetoscan'].upper()
-        ws['A4'] = 'Closing price limit: ' + config['DEFAULT']['closingpricelimit']
-        ws['A5'] = 'Ticker'
-        ws['B5'] = 'Price'
-
-    index = 6
-    print(ticker_list)
-    for tup in ticker_list:
-        ws['A' + str(index)] = tup[0]
-        ws['B' + str(index)] = tup[1]
-        index += 1
-
-    wb.save('TickersPrices.xlsx')
 
 
-createExcelSpreadsheet(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit'])[0])
+
+em.createCSV(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit'])[0])
+#createExcelSpreadsheet(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit'])[0])
 #print(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit']))
