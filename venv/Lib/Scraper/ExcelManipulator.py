@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup as bs
 from openpyxl import Workbook
 from openpyxl import load_workbook
 
+
 def createExcelSpreadsheet (ticker_list):
 
     if os.path.isfile('TickersPrices.xlsx'):
@@ -57,3 +58,16 @@ def createCSV (ticker_list):
     read_file.to_csv('TickersPrices.csv')
 
     os.remove('Temp.xlsx')
+
+def CSVtoList():
+
+    df = pd.read_csv('TickersPrices.csv')
+
+    data = df[['Ticker','Price']]
+
+    ListOfTickersAndPrices = []
+
+    for ind in data.index:
+        ListOfTickersAndPrices.append((str(data['Ticker'][ind]), str(data['Price'][ind])))
+
+    return ListOfTickersAndPrices

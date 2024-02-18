@@ -18,8 +18,6 @@ config.read('configuration.ini')
 
 def createTickerList (ExchangeToScan, ClosingPriceLimit):
 
-    a = time.perf_counter()
-
     alphabet = list(string.ascii_uppercase)
 
     #NYSE URL
@@ -41,9 +39,9 @@ def createTickerList (ExchangeToScan, ClosingPriceLimit):
     else:
         print('Error, ExchangeToScan variable did not match any case')
 
-    b = time.perf_counter()
+    print("Finished in: " + str(time.perf_counter()))
 
-    return ticker_list, b-a
+    return ticker_list
 
 #Scrape NASDAQ listed stocks under desired closing price limit
 def runNASDAQscrape (alphabet, ticker_list, URL_NA, closing_price_limit):
@@ -84,6 +82,6 @@ def runNYSEscrape (alphabet, ticker_list, URL_NY, closing_price_limit):
 
 
 
-em.createCSV(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit'])[0])
-#createExcelSpreadsheet(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit'])[0])
+em.createCSV(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit']))
+#createExcelSpreadsheet(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit']))
 #print(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit']))
