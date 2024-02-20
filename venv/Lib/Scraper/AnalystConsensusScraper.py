@@ -1,10 +1,11 @@
 import os
 import re
 import time
-
+from requests_ip_rotator import ApiGateway
 import requests as req
 from bs4 import BeautifulSoup as bs
 import ExcelManipulator as em
+import Proxies as px
 
 def scrapeConsensus (ListOfTickersAndPrices):
 
@@ -12,9 +13,26 @@ def scrapeConsensus (ListOfTickersAndPrices):
 
     TickerClosingLowChange = []
 
+    #list_of_proxies = px.createProxyList()
+
+    rotation_counter = 0
+
+    proxy_counter = 0
+
+    proxies = {
+        "http": 'http://195.90.216.75:8889',
+        "https": 'http://3.126.135.206:8080'
+    }
+
     for tup in ListOfTickersAndPrices:
-        time.sleep(0.5)
-        result = req.get(url + tup[0].lower() + '/forecast')
+        # if rotation_counter == 50:
+        #     proxy_counter += 1
+        #     proxies = {
+        #         "http": list_of_proxies[proxy_counter],
+        #         "https": list_of_proxies[proxy_counter]
+        #     }
+        print('Current proxy: ' + str(proxies) + ' iteration ' + str(rotation_counter))
+        result = req.get(url + tup[0].lower() + '/forecast', proxies=proxies)
         print(result.status_code)
         if result.status_code == 200:
             print(tup)
@@ -24,7 +42,7 @@ def scrapeConsensus (ListOfTickersAndPrices):
                 change = (float(low_price)/float(tup[1]))*100
                 new_tuple = (tup[0], tup[1], low_price, str(change)+'%')
                 TickerClosingLowChange.append(new_tuple)
-
+        rotation_counter += 1
     return TickerClosingLowChange
 
 print(scrapeConsensus(em.CSVtoList()))
