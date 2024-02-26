@@ -13,24 +13,27 @@ def scrapeConsensus (ListOfTickersAndPrices):
 
     TickerClosingLowChange = []
 
-    #list_of_proxies = px.createProxyList()
+    list_of_proxies = px.createProxyList()
 
     rotation_counter = 0
 
     proxy_counter = 0
 
-    proxies = {
-        "http": 'http://195.90.216.75:8889',
-        "https": 'http://3.126.135.206:8080'
-    }
+    proxies = {}
+
+    proxies['http'] = list_of_proxies[0][0]
+    if list_of_proxies[0][1] == True: proxies['https'] = list_of_proxies[0][0]
 
     for tup in ListOfTickersAndPrices:
-        # if rotation_counter == 50:
-        #     proxy_counter += 1
-        #     proxies = {
-        #         "http": list_of_proxies[proxy_counter],
-        #         "https": list_of_proxies[proxy_counter]
-        #     }
+        if rotation_counter == 10:
+            rotation_counter = 0
+            if proxy_counter == len(list_of_proxies):
+                proxy_counter = -1
+            proxies = {}
+            proxy_counter += 1
+            proxies['http'] = list_of_proxies[proxy_counter][0]
+            if list_of_proxies[proxy_counter][1] == True: proxies['https'] = list_of_proxies[proxy_counter][0]
+
         print('Current proxy: ' + str(proxies) + ' iteration ' + str(rotation_counter))
         result = req.get(url + tup[0].lower() + '/forecast', proxies=proxies)
         print(result.status_code)

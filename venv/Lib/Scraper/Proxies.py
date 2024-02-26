@@ -7,7 +7,7 @@ config.read('configuration.ini')
 
 def createProxyList ():
 
-    url = config['DEFAULT']['proxies']
+    url = 'https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=http&country=FR,DE,NL,GB&timeout=1550&proxy_format=ipport&format=json'
 
     result = req.get(url)
 
@@ -15,8 +15,10 @@ def createProxyList ():
 
     listOfProxies = []
 
-    for entry in json_data['data']:
-        proxy_string =  'socks5://' + entry['ip'] + ':' + entry['port']
-        listOfProxies.append(proxy_string)
+    for entry in json_data['proxies']:
+        tuple_of_proxies = ('http://' + str(entry['ip'] + ':' + str(entry['port'])), bool(entry['ssl']))
+        listOfProxies.append(tuple_of_proxies)
 
     return listOfProxies
+
+print(createProxyList())
