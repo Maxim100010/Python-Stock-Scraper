@@ -7,7 +7,20 @@ from bs4 import BeautifulSoup as bs
 import ExcelManipulator as em
 import Proxies as px
 
-def scrapeConsensus (ListOfTickersAndPrices):
+proxy_counter = 0
+
+def rotateProxy(list_of_proxies):
+    global proxy_counter
+    if proxy_counter + 1 == len(list_of_proxies):
+        proxy_counter = -1
+    proxies = {}
+    proxy_counter += 1
+    proxies['http'] = list_of_proxies[proxy_counter][0]
+    if list_of_proxies[proxy_counter][1] == True: proxies['https'] = list_of_proxies[proxy_counter][0]
+
+    return proxies
+
+def scrapeConsensus(ListOfTickersAndPrices):
 
     url = 'https://stockanalysis.com/stocks/'
 
@@ -17,25 +30,26 @@ def scrapeConsensus (ListOfTickersAndPrices):
 
     rotation_counter = 0
 
-    proxy_counter = 0
-
     proxies = {}
 
     proxies['http'] = list_of_proxies[0][0]
     if list_of_proxies[0][1] == True: proxies['https'] = list_of_proxies[0][0]
 
     for tup in ListOfTickersAndPrices:
-        if rotation_counter == 10:
+        if rotation_counter == 11:
             rotation_counter = 0
-            if proxy_counter == len(list_of_proxies):
-                proxy_counter = -1
-            proxies = {}
-            proxy_counter += 1
-            proxies['http'] = list_of_proxies[proxy_counter][0]
-            if list_of_proxies[proxy_counter][1] == True: proxies['https'] = list_of_proxies[proxy_counter][0]
+            proxies = rotateProxy(list_of_proxies)
 
         print('Current proxy: ' + str(proxies) + ' iteration ' + str(rotation_counter))
-        result = req.get(url + tup[0].lower() + '/forecast', proxies=proxies)
+        try:
+            result = req.get(url + tup[0].lower() + '/forecast', proxies=proxies, timeout=3)
+        except req.exceptions.ProxyError:
+            proxies = rotateProxy(list_of_proxies)
+            print('Proxy Error')
+        except req.exceptions.Timeout:
+            print('Timed out')
+            proxies = rotateProxy(list_of_proxies)
+
         print(result.status_code)
         if result.status_code == 200:
             print(tup)
