@@ -6,6 +6,7 @@ import requests as req
 from bs4 import BeautifulSoup as bs
 import ExcelManipulator as em
 import Proxies as px
+import socket
 
 proxy_counter = 0
 
@@ -41,8 +42,12 @@ def scrapeConsensus(ListOfTickersAndPrices):
             proxies = rotateProxy(list_of_proxies)
 
         print('Current proxy: ' + str(proxies) + ' iteration ' + str(rotation_counter))
+        print('Getting: ' + str(tup))
         try:
             result = req.get(url + tup[0].lower() + '/forecast', proxies=proxies, timeout=3)
+            while result.status_code != 200 or 404:
+                proxies = rotateProxy(list_of_proxies)
+                result = req.get(url + tup[0].lower() + '/forecast', proxies=proxies, timeout=3)
         except req.exceptions.ProxyError:
             proxies = rotateProxy(list_of_proxies)
             print('Proxy Error')
@@ -52,14 +57,18 @@ def scrapeConsensus(ListOfTickersAndPrices):
 
         print(result.status_code)
         if result.status_code == 200:
-            print(tup)
             soup = bs(result.text, features='lxml')
             if not 'n/a' in str(soup.find_all('td')[1]):
                 low_price = str(soup.find_all('td')[1]).split('$', 1)[1].split('<',1)[0]
                 change = (float(low_price)/float(tup[1]))*100
-                new_tuple = (tup[0], tup[1], low_price, str(change)+'%')
+                new_tuple = (tup[0], tup[1], low_price, str(change)+'%' if tup[1] < low_price else '-' + str(change) + '%')
+                print(new_tuple)
                 TickerClosingLowChange.append(new_tuple)
         rotation_counter += 1
     return TickerClosingLowChange
 
+hostname=socket.gethostname()
+IPAddr=socket.gethostbyname(hostname)
+print("Your Computer Name is:"+hostname)
+print("Your Computer IP Address is:"+IPAddr)
 print(scrapeConsensus(em.CSVtoList()))
