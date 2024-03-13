@@ -7,7 +7,7 @@ config.read('configuration.ini')
 
 def createProxyList ():
 
-    url = 'https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=http&country=FR,DE,NL,GB&timeout=1550&proxy_format=ipport&format=json'
+    url = 'https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&protocol=http&country=AT,BE,CZ,EE,FR,DE,NL,GB&anonymity=elite&timeout=1550&proxy_format=ipport&format=json'
 
     result = req.get(url)
 

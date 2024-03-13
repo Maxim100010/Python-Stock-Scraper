@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup as bs
 import ExcelManipulator as em
 import Proxies as px
 import socket
+from fake_useragent import UserAgent
 
 proxy_counter = 0
 
@@ -43,17 +44,30 @@ def scrapeConsensus(ListOfTickersAndPrices):
 
         print('Current proxy: ' + str(proxies) + ' iteration ' + str(rotation_counter))
         print('Getting: ' + str(tup))
-        try:
-            result = req.get(url + tup[0].lower() + '/forecast', proxies=proxies, timeout=3)
-            while result.status_code != 200 or 404:
+        while True:
+            try:
+                headers = {
+                    'User_Agent': str(UserAgent.random)
+                }
+                result = req.get(url + tup[0].lower() + '/forecast', headers=headers, proxies=proxies, timeout=3)
+                while True:
+                    if result.status_code == 404 or result.status_code == 200:
+                        break
+                    proxies = rotateProxy(list_of_proxies)
+                    print('Current proxy: ' + str(proxies) + ' iteration ' + str(rotation_counter))
+                    headers = {
+                        'User_Agent': str(UserAgent.random)
+                    }
+                    result = req.get(url + tup[0].lower() + '/forecast', headers=headers, proxies=proxies, timeout=3)
+                    print(result.status_code)
+                if result.status_code == 404 or result.status_code == 200:
+                    break
+            except req.exceptions.ProxyError:
                 proxies = rotateProxy(list_of_proxies)
-                result = req.get(url + tup[0].lower() + '/forecast', proxies=proxies, timeout=3)
-        except req.exceptions.ProxyError:
-            proxies = rotateProxy(list_of_proxies)
-            print('Proxy Error')
-        except req.exceptions.Timeout:
-            print('Timed out')
-            proxies = rotateProxy(list_of_proxies)
+                print('Proxy Error')
+            except req.exceptions.Timeout:
+                print('Timed out')
+                proxies = rotateProxy(list_of_proxies)
 
         print(result.status_code)
         if result.status_code == 200:
@@ -61,6 +75,7 @@ def scrapeConsensus(ListOfTickersAndPrices):
             if not 'n/a' in str(soup.find_all('td')[1]):
                 low_price = str(soup.find_all('td')[1]).split('$', 1)[1].split('<',1)[0]
                 change = (float(low_price)/float(tup[1]))*100
+                rounded_change = round(change, 2)
                 new_tuple = (tup[0], tup[1], low_price, str(change)+'%' if tup[1] < low_price else '-' + str(change) + '%')
                 print(new_tuple)
                 TickerClosingLowChange.append(new_tuple)
