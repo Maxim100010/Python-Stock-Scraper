@@ -69,6 +69,34 @@ def scrapeConsensus(ListOfTickersAndPrices):
                 print('Timed out')
                 proxies = rotateProxy(list_of_proxies)
 
+        if result.status_code == 200:
+            while True:
+                try:
+                    headers = {
+                        'User_Agent': str(UserAgent.random)
+                    }
+
+                    result_ratings = req.get(url + tup[0].lower() + '/ratings', proxies=proxies, headers=headers)
+                    while True:
+                        if result_ratings.status_code == 404 or result_ratings.status_code == 200:
+                            break
+                        proxies = rotateProxy(list_of_proxies)
+                        print('Current proxy: ' + str(proxies) + ' iteration ' + str(rotation_counter))
+                        headers = {
+                            'User_Agent': str(UserAgent.random)
+                        }
+                        result_ratings = req.get(url + tup[0].lower() + '/ratings', headers=headers, proxies=proxies,
+                                             timeout=3)
+                        print(result_ratings.status_code)
+                    if result_ratings.status_code == 404 or result_ratings.status_code == 200:
+                        break
+                except req.exceptions.ProxyError:
+                    print('Proxy Error')
+                    proxies = rotateProxy(list_of_proxies)
+                except req.exceptions.Timeout:
+                    print('Timed out')
+                    proxies = rotateProxy(list_of_proxies)
+
         print(result.status_code)
         if result.status_code == 200:
             soup = bs(result.text, features='lxml')
@@ -76,7 +104,12 @@ def scrapeConsensus(ListOfTickersAndPrices):
                 low_price = str(soup.find_all('td')[1]).split('$', 1)[1].split('<',1)[0]
                 change = (float(low_price)/float(tup[1]))*100
                 rounded_change = round(change, 2)
-                new_tuple = (tup[0], tup[1], low_price, str(change)+'%' if tup[1] < low_price else '-' + str(change) + '%')
+
+                soup_ratings = bs(result_ratings.text, features='lxml')
+                latest_analysts_rating = str(soup_ratings.find_all('div', {"class": "stars md"})[0]).split(':', 1)[1].split(';',1)[0]
+
+                new_tuple = (
+                    tup[0], tup[1], low_price, str(rounded_change) + '%' if tup[1] < low_price else '-' + str(rounded_change) + '%', latest_analysts_rating)
                 print(new_tuple)
                 TickerClosingLowChange.append(new_tuple)
         rotation_counter += 1
@@ -99,6 +132,9 @@ def scrapeConsensusWithPaidProxies(ListOfTickersAndPrices):
 
     for tup in ListOfTickersAndPrices:
 
+        if iteration_counter == 100:
+            break
+
         iteration_counter += 1
 
         print('Getting: ' + str(tup) + ' ' + str(iteration_counter) + '/' + str(len(ListOfTickersAndPrices)))
@@ -110,7 +146,14 @@ def scrapeConsensusWithPaidProxies(ListOfTickersAndPrices):
                     break
             except req.exceptions.ProxyError:
                 print('Proxy Error')
-
+        if result.status_code == 200:
+            while True:
+                try:
+                    result_ratings = req.get(url + tup[0].lower() + '/ratings', proxies=proxies)
+                    if result_ratings.status_code == 200 or result_ratings.status_code == 404:
+                        break
+                except req.exceptions.ProxyError:
+                    print('Proxy Error')
         print(result.status_code)
         if result.status_code == 200:
             soup = bs(result.text, features='lxml')
@@ -118,10 +161,15 @@ def scrapeConsensusWithPaidProxies(ListOfTickersAndPrices):
                 low_price = str(soup.find_all('td')[1]).split('$', 1)[1].split('<', 1)[0]
                 change = (float(low_price) / float(tup[1])) * 100
                 rounded_change = round(change, 2)
+
+                soup_ratings = bs(result_ratings.text, features='lxml')
+                latest_analysts_rating = str(soup_ratings.find_all('div', {"class": "stars md"})[0]).split(':', 1)[1].split(';',1)[0]
+
                 new_tuple = (
-                tup[0], tup[1], low_price, str(change) + '%' if tup[1] < low_price else '-' + str(change) + '%')
+                    tup[0], tup[1], low_price, str(rounded_change) + '%' if tup[1] < low_price else '-' + str(rounded_change) + '%', latest_analysts_rating)
                 print(new_tuple)
                 TickerClosingLowChange.append(new_tuple)
+
     return TickerClosingLowChange
 
 
@@ -130,4 +178,4 @@ hostname=socket.gethostname()
 IPAddr=socket.gethostbyname(hostname)
 print("Your Computer Name is:"+hostname)
 print("Your Computer IP Address is:"+IPAddr)
-print(scrapeConsensusWithPaidProxies(em.CSVtoList()))
+print(scrapeConsensus(em.CSVtoList()))
