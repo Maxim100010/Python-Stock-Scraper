@@ -82,8 +82,52 @@ def scrapeConsensus(ListOfTickersAndPrices):
         rotation_counter += 1
     return TickerClosingLowChange
 
+def scrapeConsensusWithPaidProxies(ListOfTickersAndPrices):
+
+    url = 'https://stockanalysis.com/stocks/'
+
+    TickerClosingLowChange = []
+
+    proxies = {
+        'http': 'http://customer-scraperproxyuser:6AfKYJzVqq9Yz@pr.oxylabs.io:7777',
+        'https': 'http://customer-scraperproxyuser:6AfKYJzVqq9Yz@pr.oxylabs.io:7777'
+    }
+
+    print("Entries to scrape: " + str(len(ListOfTickersAndPrices)))
+
+    iteration_counter = 0
+
+    for tup in ListOfTickersAndPrices:
+
+        iteration_counter += 1
+
+        print('Getting: ' + str(tup) + ' ' + str(iteration_counter) + '/' + str(len(ListOfTickersAndPrices)))
+
+        while True:
+            try:
+                result = req.get(url + tup[0].lower() + '/forecast', proxies=proxies)
+                if result.status_code == 200 or result.status_code == 404:
+                    break
+            except req.exceptions.ProxyError:
+                print('Proxy Error')
+
+        print(result.status_code)
+        if result.status_code == 200:
+            soup = bs(result.text, features='lxml')
+            if not 'n/a' in str(soup.find_all('td')[1]):
+                low_price = str(soup.find_all('td')[1]).split('$', 1)[1].split('<', 1)[0]
+                change = (float(low_price) / float(tup[1])) * 100
+                rounded_change = round(change, 2)
+                new_tuple = (
+                tup[0], tup[1], low_price, str(change) + '%' if tup[1] < low_price else '-' + str(change) + '%')
+                print(new_tuple)
+                TickerClosingLowChange.append(new_tuple)
+    return TickerClosingLowChange
+
+
+
 hostname=socket.gethostname()
 IPAddr=socket.gethostbyname(hostname)
 print("Your Computer Name is:"+hostname)
 print("Your Computer IP Address is:"+IPAddr)
-print(scrapeConsensus(em.CSVtoList()))
+print(scrapeConsensusWithPaidProxies(em.CSVtoList()))
