@@ -37,6 +37,32 @@ def createTickerExcelSpreadsheet (ticker_list):
 
     wb.save('TickersPrices.xlsx')
 
+def createConsensusExcelSpreadsheet (TickerClosingLowChangeRatingList):
+    if os.path.isfile('Consensus.xlsx'):
+        wb = load_workbook(filename='Consensus.xlsx')
+        ws = wb.active
+    else:
+        wb = Workbook()
+        ws = wb.active
+        ws.title = 'Analyst Consensus'
+        ws['A1'] = 'Current Consensus from: ' + str(datetime.date.today())
+        ws['A2'] = 'Ticker'
+        ws['B2'] = 'Closing price'
+        ws['C2'] = '12-month Forecasted LOW Price'
+        ws['D2'] = 'Percentual Change'
+        ws['E2'] = 'Rating of the Analysts Who Made The Forecast (0-5)'
+
+        index = 3
+        for tup in TickerClosingLowChangeRatingList:
+            ws['A' + str(index)] = tup[0]
+            ws['B' + str(index)] = tup[1]
+            ws['C' + str(index)] = tup[2]
+            ws['D' + str(index)] = tup[3]
+            ws['E' + str(index)] = tup[4]
+            index += 1
+
+        wb.save('Consensus.xlsx')
+
 def createTickerCSV (ticker_list):
     wb = Workbook()
     ws = wb.active

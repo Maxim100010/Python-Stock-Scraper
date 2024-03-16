@@ -137,7 +137,7 @@ def scrapeConsensusWithPaidProxies(ListOfTickersAndPrices):
 
     url = 'https://stockanalysis.com/stocks/'
 
-    TickerClosingLowChange = []
+    TickerClosingLowChangeRatingList = []
 
     proxies = {
         'http': config['DEFAULT']['paidproxylink'],
@@ -150,7 +150,7 @@ def scrapeConsensusWithPaidProxies(ListOfTickersAndPrices):
 
     for tup in ListOfTickersAndPrices:
 
-        if iteration_counter == 100:
+        if iteration_counter == 10:
             break
 
         iteration_counter += 1
@@ -176,8 +176,8 @@ def scrapeConsensusWithPaidProxies(ListOfTickersAndPrices):
         if result.status_code == 200:
             new_tuple = extractDataFromHTML(result, result_ratings, tup)
             if new_tuple != None:
-                TickerClosingLowChange.append(new_tuple)
+                TickerClosingLowChangeRatingList.append(new_tuple)
 
-    return TickerClosingLowChange
+    return TickerClosingLowChangeRatingList
 
-print(scrapeConsensusWithPaidProxies(em.TickerCSVtoList()))
+em.createConsensusExcelSpreadsheet(scrapeConsensusWithPaidProxies(em.TickerCSVtoList()))
