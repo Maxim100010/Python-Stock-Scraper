@@ -82,6 +82,6 @@ def runNYSEscrape (alphabet, ticker_list, URL_NY, closing_price_limit):
 
 
 
-em.createCSV(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit']))
-#createExcelSpreadsheet(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit']))
+em.createTickerCSV(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit']))
+#createTickerExcelSpreadsheet(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit']))
 #print(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit']))

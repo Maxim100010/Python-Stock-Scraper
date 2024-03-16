@@ -13,7 +13,7 @@ from openpyxl import Workbook
 from openpyxl import load_workbook
 
 
-def createExcelSpreadsheet (ticker_list):
+def createTickerExcelSpreadsheet (ticker_list):
 
     if os.path.isfile('TickersPrices.xlsx'):
         wb = load_workbook(filename='TickersPrices.xlsx')
@@ -37,7 +37,7 @@ def createExcelSpreadsheet (ticker_list):
 
     wb.save('TickersPrices.xlsx')
 
-def createCSV (ticker_list):
+def createTickerCSV (ticker_list):
     wb = Workbook()
     ws = wb.active
     ws.title = 'Data'
@@ -59,7 +59,7 @@ def createCSV (ticker_list):
 
     os.remove('Temp.xlsx')
 
-def CSVtoList():
+def TickerCSVtoList():
 
     df = pd.read_csv('TickersPrices.csv')
 

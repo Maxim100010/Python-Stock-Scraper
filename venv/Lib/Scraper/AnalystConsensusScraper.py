@@ -1,15 +1,19 @@
 import os
 import re
+import sys
 import time
+import configparser
 from requests_ip_rotator import ApiGateway
 import requests as req
 from bs4 import BeautifulSoup as bs
 import ExcelManipulator as em
 import Proxies as px
-import socket
 from fake_useragent import UserAgent
 
 proxy_counter = 0
+
+config = configparser.ConfigParser()
+config.read('configuration.ini')
 
 def rotateProxy(list_of_proxies):
     global proxy_counter
@@ -22,6 +26,26 @@ def rotateProxy(list_of_proxies):
 
     return proxies
 
+def extractDataFromHTML(result, result_ratings, tup):
+    soup = bs(result.text, features='lxml')
+    newTuple = None
+    if not 'n/a' in str(soup.find_all('td')[1]):
+        low_price = str(soup.find_all('td')[1]).split('$', 1)[1].split('<', 1)[0]
+        change = (float(low_price) / float(tup[1])) * 100
+        rounded_change = round(change, 2)
+
+        soup_ratings = bs(result_ratings.text, features='lxml')
+        latest_analysts_rating = \
+        str(soup_ratings.find_all('div', {"class": "stars md"})[0]).split(':', 1)[1].split(';', 1)[0]
+
+        new_tuple = (
+            tup[0], tup[1], low_price,
+            str(rounded_change) + '%' if tup[1] < low_price else '-' + str(rounded_change) + '%',
+            latest_analysts_rating)
+        print(new_tuple)
+
+    return new_tuple
+
 def scrapeConsensus(ListOfTickersAndPrices):
 
     url = 'https://stockanalysis.com/stocks/'
@@ -29,6 +53,10 @@ def scrapeConsensus(ListOfTickersAndPrices):
     TickerClosingLowChange = []
 
     list_of_proxies = px.createProxyList()
+
+    if len(list_of_proxies) == 0: sys.exit('No proxies found')
+
+    print("Entries to scrape: " + str(len(ListOfTickersAndPrices)))
 
     rotation_counter = 0
 
@@ -43,7 +71,7 @@ def scrapeConsensus(ListOfTickersAndPrices):
             proxies = rotateProxy(list_of_proxies)
 
         print('Current proxy: ' + str(proxies) + ' iteration ' + str(rotation_counter))
-        print('Getting: ' + str(tup))
+        print('Getting: ' + str(tup) + ' ' + str(iteration_counter) + '/' + str(len(ListOfTickersAndPrices)))
         while True:
             try:
                 headers = {
@@ -99,18 +127,8 @@ def scrapeConsensus(ListOfTickersAndPrices):
 
         print(result.status_code)
         if result.status_code == 200:
-            soup = bs(result.text, features='lxml')
-            if not 'n/a' in str(soup.find_all('td')[1]):
-                low_price = str(soup.find_all('td')[1]).split('$', 1)[1].split('<',1)[0]
-                change = (float(low_price)/float(tup[1]))*100
-                rounded_change = round(change, 2)
-
-                soup_ratings = bs(result_ratings.text, features='lxml')
-                latest_analysts_rating = str(soup_ratings.find_all('div', {"class": "stars md"})[0]).split(':', 1)[1].split(';',1)[0]
-
-                new_tuple = (
-                    tup[0], tup[1], low_price, str(rounded_change) + '%' if tup[1] < low_price else '-' + str(rounded_change) + '%', latest_analysts_rating)
-                print(new_tuple)
+            new_tuple = extractDataFromHTML(result, result_ratings, tup)
+            if new_tuple != None:
                 TickerClosingLowChange.append(new_tuple)
         rotation_counter += 1
     return TickerClosingLowChange
@@ -122,8 +140,8 @@ def scrapeConsensusWithPaidProxies(ListOfTickersAndPrices):
     TickerClosingLowChange = []
 
     proxies = {
-        'http': 'http://customer-scraperproxyuser:6AfKYJzVqq9Yz@pr.oxylabs.io:7777',
-        'https': 'http://customer-scraperproxyuser:6AfKYJzVqq9Yz@pr.oxylabs.io:7777'
+        'http': config['DEFAULT']['paidproxylink'],
+        'https': config['DEFAULT']['paidproxylink']
     }
 
     print("Entries to scrape: " + str(len(ListOfTickersAndPrices)))
@@ -156,26 +174,10 @@ def scrapeConsensusWithPaidProxies(ListOfTickersAndPrices):
                     print('Proxy Error')
         print(result.status_code)
         if result.status_code == 200:
-            soup = bs(result.text, features='lxml')
-            if not 'n/a' in str(soup.find_all('td')[1]):
-                low_price = str(soup.find_all('td')[1]).split('$', 1)[1].split('<', 1)[0]
-                change = (float(low_price) / float(tup[1])) * 100
-                rounded_change = round(change, 2)
-
-                soup_ratings = bs(result_ratings.text, features='lxml')
-                latest_analysts_rating = str(soup_ratings.find_all('div', {"class": "stars md"})[0]).split(':', 1)[1].split(';',1)[0]
-
-                new_tuple = (
-                    tup[0], tup[1], low_price, str(rounded_change) + '%' if tup[1] < low_price else '-' + str(rounded_change) + '%', latest_analysts_rating)
-                print(new_tuple)
+            new_tuple = extractDataFromHTML(result, result_ratings, tup)
+            if new_tuple != None:
                 TickerClosingLowChange.append(new_tuple)
 
     return TickerClosingLowChange
 
-
-
-hostname=socket.gethostname()
-IPAddr=socket.gethostbyname(hostname)
-print("Your Computer Name is:"+hostname)
-print("Your Computer IP Address is:"+IPAddr)
-print(scrapeConsensus(em.CSVtoList()))
+print(scrapeConsensusWithPaidProxies(em.TickerCSVtoList()))
