@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup as bs
 import ExcelManipulator as em
 import Proxies as px
 from fake_useragent import UserAgent
+import operator
 
 proxy_counter = 0
 
@@ -28,29 +29,30 @@ def rotateProxy(list_of_proxies):
 
 def extractDataFromHTML(result, result_ratings, tup):
     soup = bs(result.text, features='lxml')
-    newTuple = None
+    new_tuple = None
     if not 'n/a' in str(soup.find_all('td')[1]):
         low_price = str(soup.find_all('td')[1]).split('$', 1)[1].split('<', 1)[0]
-        change = (float(low_price) / float(tup[1])) * 100
+        change = ((float(low_price) - float(tup[1])) / float(tup[1])) * 100
         rounded_change = round(change, 2)
 
         soup_ratings = bs(result_ratings.text, features='lxml')
-        latest_analysts_rating = \
-        str(soup_ratings.find_all('div', {"class": "stars md"})[0]).split(':', 1)[1].split(';', 1)[0]
+        latest_analysts_rating = str(soup_ratings.find_all('div', {"class": "stars md"})[0]).split(':', 1)[1].split(';', 1)[0]
+
+        if float(latest_analysts_rating) < float(config['DEFAULT']['AverageAnalystRating']):
+            return new_tuple
 
         new_tuple = (
-            tup[0], tup[1], low_price,
-            str(rounded_change) + '%' if tup[1] < low_price else '-' + str(rounded_change) + '%',
+            tup[0], tup[1] + '$', low_price  + '$',
+            str(rounded_change) + '%',
             latest_analysts_rating)
         print(new_tuple)
-
     return new_tuple
 
 def scrapeConsensus(ListOfTickersAndPrices):
 
     url = 'https://stockanalysis.com/stocks/'
 
-    TickerClosingLowChange = []
+    TickerClosingLowChangeRatingList = []
 
     list_of_proxies = px.createProxyList()
 
@@ -129,9 +131,9 @@ def scrapeConsensus(ListOfTickersAndPrices):
         if result.status_code == 200:
             new_tuple = extractDataFromHTML(result, result_ratings, tup)
             if new_tuple != None:
-                TickerClosingLowChange.append(new_tuple)
+                TickerClosingLowChangeRatingList.append(new_tuple)
         rotation_counter += 1
-    return TickerClosingLowChange
+    return sorted(TickerClosingLowChangeRatingList, key=operator.itemgetter(3, 4), reverse=True)
 
 def scrapeConsensusWithPaidProxies(ListOfTickersAndPrices):
 
@@ -150,7 +152,7 @@ def scrapeConsensusWithPaidProxies(ListOfTickersAndPrices):
 
     for tup in ListOfTickersAndPrices:
 
-        if iteration_counter == 10:
+        if iteration_counter == 75:
             break
 
         iteration_counter += 1
@@ -178,6 +180,6 @@ def scrapeConsensusWithPaidProxies(ListOfTickersAndPrices):
             if new_tuple != None:
                 TickerClosingLowChangeRatingList.append(new_tuple)
 
-    return TickerClosingLowChangeRatingList
+    return sorted(TickerClosingLowChangeRatingList, key=lambda x: (float(x[3].split('%')[0]), float(x[4])), reverse=True)
 
 em.createConsensusExcelSpreadsheet(scrapeConsensusWithPaidProxies(em.TickerCSVtoList()))

@@ -20,5 +20,3 @@ def createProxyList ():
         listOfProxies.append(tuple_of_proxies)
 
     return listOfProxies
-
-print(createProxyList())
