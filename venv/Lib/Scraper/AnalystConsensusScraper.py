@@ -98,6 +98,9 @@ def scrapeConsensus(ListOfTickersAndPrices):
             except req.exceptions.Timeout:
                 print('Timed out')
                 proxies = rotateProxy(list_of_proxies)
+            except req.exceptions.SSLError:
+                print('Proxy Error')
+                proxies = rotateProxy(list_of_proxies)
 
         if result.status_code == 200:
             while True:
@@ -126,7 +129,9 @@ def scrapeConsensus(ListOfTickersAndPrices):
                 except req.exceptions.Timeout:
                     print('Timed out')
                     proxies = rotateProxy(list_of_proxies)
-
+                except req.exceptions.SSLError:
+                    print('Proxy Error')
+                    proxies = rotateProxy(list_of_proxies)
         print(result.status_code)
         if result.status_code == 200:
             new_tuple = extractDataFromHTML(result, result_ratings, tup)
@@ -166,6 +171,8 @@ def scrapeConsensusWithPaidProxies(ListOfTickersAndPrices):
                     break
             except req.exceptions.ProxyError:
                 print('Proxy Error')
+            except req.exceptions.SSLError:
+                print('Proxy Error')
         if result.status_code == 200:
             while True:
                 try:
@@ -173,6 +180,8 @@ def scrapeConsensusWithPaidProxies(ListOfTickersAndPrices):
                     if result_ratings.status_code == 200 or result_ratings.status_code == 404:
                         break
                 except req.exceptions.ProxyError:
+                    print('Proxy Error')
+                except req.exceptions.SSLError:
                     print('Proxy Error')
         print(result.status_code)
         if result.status_code == 200:

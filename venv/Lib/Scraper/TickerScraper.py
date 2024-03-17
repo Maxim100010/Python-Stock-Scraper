@@ -45,7 +45,9 @@ def createTickerList (ExchangeToScan, ClosingPriceLimit):
 
 #Scrape NASDAQ listed stocks under desired closing price limit
 def runNASDAQscrape (alphabet, ticker_list, URL_NA, closing_price_limit):
+    counter = 1
     for letter in alphabet:
+        print('Current Letter: ' + str(letter) + " " + str(counter) + "/26")
         #Open URL
         result = req.get(URL_NA + letter + ".htm")
         #Parse HTML
@@ -55,14 +57,16 @@ def runNASDAQscrape (alphabet, ticker_list, URL_NA, closing_price_limit):
             ticker = str(tr).split("NASDAQ/", 1)[1].split(".", 1)[0]
             closing_price = float(str(tr.td.next_sibling.next_sibling.next_sibling.next_sibling).split(">", 1)[1].split("<", 1)[0].replace(",", "."))
             if closing_price < float(closing_price_limit):
-                ticker_closingprice_tuple = (ticker, closing_price)
+                ticker_closingprice_tuple = (ticker, str(closing_price) + "$")
                 ticker_list.append(ticker_closingprice_tuple)
-
+        counter += 1
     return ticker_list
 
 #Scrape NYSE listed stocks under desired closing price limit
 def runNYSEscrape (alphabet, ticker_list, URL_NY, closing_price_limit):
+    counter = 1
     for letter in alphabet:
+        print('Current Letter: ' + str(letter) + " " + str(counter) + "/26")
         #Open URL
         result = req.get(URL_NY + letter + ".htm")
         #Parse HTML
@@ -74,14 +78,15 @@ def runNYSEscrape (alphabet, ticker_list, URL_NY, closing_price_limit):
                 str(tr.td.next_sibling.next_sibling.next_sibling.next_sibling).split(">", 1)[1].split("<", 1)[
                     0].replace(",", "."))
             if closing_price < float(closing_price_limit):
-                ticker_closingprice_tuple = (ticker, closing_price)
+                ticker_closingprice_tuple = (ticker, str(closing_price) + "$")
                 ticker_list.append(ticker_closingprice_tuple)
-
+        counter += 1
     return ticker_list
 
 
 
-
-em.createTickerCSV(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit']))
+tlist = createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit'])
+em.createTickerExcelSpreadsheet(tlist)
+em.createTickerCSV(tlist)
 #createTickerExcelSpreadsheet(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit']))
 #print(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit']))

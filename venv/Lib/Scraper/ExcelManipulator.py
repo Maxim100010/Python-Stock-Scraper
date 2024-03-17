@@ -15,22 +15,51 @@ from openpyxl.worksheet.dimensions import ColumnDimension
 from openpyxl.styles import Border, Side, PatternFill, Font, GradientFill, Alignment, Color
 import operator
 
+config = configparser.ConfigParser()
+config.read('configuration.ini')
 
 def createTickerExcelSpreadsheet (ticker_list):
+    if os.path.isfile('Consensus.xlsx'):
+        os.remove('Consensus.xlsx')
 
-    if os.path.isfile('TickersPrices.xlsx'):
-        wb = load_workbook(filename='TickersPrices.xlsx')
-        ws = wb.active
-    else:
-        wb = Workbook()
-        ws = wb.active
-        ws.title = 'Tickers And Closing Prices'
-        ws['A1'] = 'Current Tickers and prices from ' + str(datetime.date.today())
-        ws['A2'] = 'Currently applied filters'
-        ws['A3'] = 'Exchange: ' + config['DEFAULT']['exchangetoscan'].upper()
-        ws['A4'] = 'Closing price limit: ' + config['DEFAULT']['closingpricelimit']
-        ws['A5'] = 'Ticker'
-        ws['B5'] = 'Price'
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Tickers And Closing Prices'
+
+    ws.merge_cells('A1:D1')
+    ws.merge_cells('A2:D2')
+    ws.merge_cells('A3:D3')
+    ws.merge_cells('A4:D4')
+
+    a1 = ws['A1']
+    a1.value = 'Current Tickers and prices from ' + str(datetime.date.today())
+    a1.alignment = Alignment(horizontal='center')
+    a1.fill = PatternFill("solid", fgColor="00C0C0C0")
+
+    a2 = ws['A2']
+    a2.value = 'Currently applied filters'
+    a2.alignment = Alignment(horizontal='center')
+    a2.fill = PatternFill("solid", fgColor="00C0C0C0")
+
+    a3 = ws['A3']
+    a3.value = 'Exchange: ' + config['DEFAULT']['exchangetoscan'].upper()
+    a3.alignment = Alignment(horizontal='center')
+    a3.fill = PatternFill("solid", fgColor="00C0C0C0")
+
+    a4 = ws['A4']
+    a4.value = 'Closing price limit: ' + config['DEFAULT']['closingpricelimit']
+    a4.alignment = Alignment(horizontal='center')
+    a4.fill = PatternFill("solid", fgColor="00C0C0C0")
+
+    a5 = ws['A5']
+    a5.value = 'Ticker'
+    a5.alignment = Alignment(horizontal='center')
+    a5.fill = PatternFill("solid", fgColor="00C0C0C0")
+
+    b5 = ws['B5']
+    b5.value = 'Price'
+    b5.alignment = Alignment(horizontal='center')
+    b5.fill = PatternFill("solid", fgColor="00C0C0C0")
 
     index = 6
     for tup in ticker_list:
@@ -142,14 +171,6 @@ def TickerCSVtoList():
     ListOfTickersAndPrices = []
 
     for ind in data.index:
-        ListOfTickersAndPrices.append((str(data['Ticker'][ind]), str(data['Price'][ind])))
+        ListOfTickersAndPrices.append((str(data['Ticker'][ind]), str(data['Price'][ind].split("$")[0])))
 
     return ListOfTickersAndPrices
-
-
-# list = [
-#     ('AADI', '1.9$', '5.00$', '263.16%', ' 1.85'),
-#     ('AAL', '14.64$', '11$', '-75.14%', ' 2.48')
-# ]
-#
-# createConsensusExcelSpreadsheet(list)
