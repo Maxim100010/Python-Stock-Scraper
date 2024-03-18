@@ -1,3 +1,4 @@
+import datetime
 import os
 import re
 import sys
@@ -10,6 +11,8 @@ import ExcelManipulator as em
 import Proxies as px
 from fake_useragent import UserAgent
 import operator
+from datetime import datetime
+
 
 proxy_counter = 0
 
@@ -36,15 +39,32 @@ def extractDataFromHTML(result, result_ratings, tup):
         rounded_change = round(change, 2)
 
         soup_ratings = bs(result_ratings.text, features='lxml')
-        latest_analysts_rating = str(soup_ratings.find_all('div', {"class": "stars md"})[0]).split(':', 1)[1].split(';', 1)[0]
+        ratings_table = soup_ratings.find('tbody', {"class": "svelte-1c46ly0"})
+        ratings_rows = ratings_table.find_all('tr')
+        list_of_names = []
+        list_of_ratings = []
 
-        if float(latest_analysts_rating) < float(config['DEFAULT']['AverageAnalystRating']):
+        for row in ratings_rows:
+            name_rating = row.find('td', {"class": "align-baseline md:align-middle svelte-1c46ly0"})
+            name = str(name_rating.find('a').text)
+            rating = str(name_rating.find('div', {"class": "stars md"})).split(':', 1)[1].split(';', 1)[0]
+            date = str(row.find('td', {"class": "whitespace-nowrap align-middle text-smaller font-semibold svelte-1c46ly0"}).text)
+            datetime_object = datetime.strptime(date.strip(), "%b %d, %Y")
+
+            if name not in list_of_names:
+                list_of_names.append(name)
+                if datetime_object.year >= datetime.today().year - 1:
+                    list_of_ratings.append(float(rating))
+
+        avg_rating = float(sum(list_of_ratings)/len(list_of_ratings))
+
+        if avg_rating < float(config['DEFAULT']['AverageAnalystRating']):
             return new_tuple
 
         new_tuple = (
             tup[0], tup[1] + '$', low_price  + '$',
             str(rounded_change) + '%',
-            latest_analysts_rating)
+            round(avg_rating, 2))
         print(new_tuple)
     return new_tuple
 
