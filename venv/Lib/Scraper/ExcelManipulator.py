@@ -162,9 +162,44 @@ def createTickerCSV (ticker_list):
 
     os.remove('Temp.xlsx')
 
+def createTickersFromConsensusCSV (consensus_list):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Data'
+
+    ws['A1'] = 'Ticker'
+    ws['B1'] = 'Price'
+
+    index = 2
+    for tup in consensus_list:
+        ws['A' + str(index)] = tup[0]
+        ws['B' + str(index)] = tup[1]
+        index += 1
+
+    wb.save('Temp.xlsx')
+
+    read_file = pd.read_excel('Temp.xlsx')
+
+    read_file.to_csv('TickersPricesFromConsensus.csv')
+
+    os.remove('Temp.xlsx')
+
 def TickerCSVtoList():
 
     df = pd.read_csv('TickersPrices.csv')
+
+    data = df[['Ticker','Price']]
+
+    ListOfTickersAndPrices = []
+
+    for ind in data.index:
+        ListOfTickersAndPrices.append((str(data['Ticker'][ind]), str(data['Price'][ind].split("$")[0])))
+
+    return ListOfTickersAndPrices
+
+def TickersFromConsesusCSVtoList():
+
+    df = pd.read_csv('TickersPricesFromConsensus.csv')
 
     data = df[['Ticker','Price']]
 

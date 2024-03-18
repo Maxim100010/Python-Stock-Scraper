@@ -157,7 +157,7 @@ def scrapeConsensusWithPaidProxies(ListOfTickersAndPrices):
 
     for tup in ListOfTickersAndPrices:
 
-        if iteration_counter == 75:
+        if iteration_counter == 30:
             break
 
         iteration_counter += 1
@@ -191,4 +191,5 @@ def scrapeConsensusWithPaidProxies(ListOfTickersAndPrices):
 
     return sorted(TickerClosingLowChangeRatingList, key=lambda x: (float(x[3].split('%')[0]), float(x[4])), reverse=True)
 
-em.createConsensusExcelSpreadsheet(scrapeConsensusWithPaidProxies(em.TickerCSVtoList()))
+lst = scrapeConsensusWithPaidProxies(em.TickersFromConsesusCSVtoList())
+em.createConsensusExcelSpreadsheet(lst)
