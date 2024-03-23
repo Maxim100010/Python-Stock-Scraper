@@ -16,6 +16,11 @@ import ExcelManipulator as em
 config = configparser.ConfigParser()
 config.read('configuration.ini')
 
+proxies = {
+        'http': config['DEFAULT']['paidproxylink'],
+        'https': config['DEFAULT']['paidproxylink']
+        }
+
 def createTickerList (ExchangeToScan, ClosingPriceLimit):
 
     alphabet = list(string.ascii_uppercase)
@@ -49,7 +54,11 @@ def runNASDAQscrape (alphabet, ticker_list, URL_NA, closing_price_limit):
     for letter in alphabet:
         print('Current Letter: ' + str(letter) + " " + str(counter) + "/26")
         #Open URL
-        result = req.get(URL_NA + letter + ".htm")
+        if config['DEFAULT']['tickerspaidproxy'] == "true":
+            global proxies
+            result = req.get(URL_NA + letter + ".htm", proxies=proxies)
+        else:
+            result = req.get(URL_NA + letter + ".htm")
         #Parse HTML
         soup = bs(result.text, features="lxml")
         #For all HTML 'tr' tags extract ticker and price
@@ -68,7 +77,11 @@ def runNYSEscrape (alphabet, ticker_list, URL_NY, closing_price_limit):
     for letter in alphabet:
         print('Current Letter: ' + str(letter) + " " + str(counter) + "/26")
         #Open URL
-        result = req.get(URL_NY + letter + ".htm")
+        if config['DEFAULT']['tickerspaidproxy'] == "true":
+            global proxies
+            result = req.get(URL_NY + letter + ".htm", proxies=proxies)
+        else:
+            result = req.get(URL_NY + letter + ".htm")
         #Parse HTML
         soup = bs(result.text, features="lxml")
         #For all HTML 'tr' tags extract ticker and price
