@@ -7,8 +7,8 @@ import configparser
 from requests_ip_rotator import ApiGateway
 import requests as req
 from bs4 import BeautifulSoup as bs
-import ExcelManipulator as em
-import Proxies as px
+import ExcelCsvFiles.ExcelManipulator as em
+import Scrapers.Proxies as px
 from fake_useragent import UserAgent
 import operator
 from datetime import datetime
@@ -82,6 +82,8 @@ def scrapeConsensus(ListOfTickersAndPrices):
 
     rotation_counter = 0
 
+    iteration_counter = 0
+
     proxies = {}
 
     proxies['http'] = list_of_proxies[0][0]
@@ -91,6 +93,8 @@ def scrapeConsensus(ListOfTickersAndPrices):
         if rotation_counter == 11:
             rotation_counter = 0
             proxies = rotateProxy(list_of_proxies)
+
+        iteration_counter += 1
 
         print('Current proxy: ' + str(proxies) + ' iteration ' + str(rotation_counter))
         print('Getting: ' + str(tup) + ' ' + str(iteration_counter) + '/' + str(len(ListOfTickersAndPrices)))
@@ -110,6 +114,10 @@ def scrapeConsensus(ListOfTickersAndPrices):
                     }
                     result = req.get(url + tup[0].lower() + '/forecast', headers=headers, proxies=proxies, timeout=3)
                     print(result.status_code)
+                    if result.status_code == 429:
+                        print('IP blocked. For high volume scraping it is recommended to use paid proxies')
+                        print('Exiting...')
+                        exit(429)
                 if result.status_code == 404 or result.status_code == 200:
                     break
             except req.exceptions.ProxyError:
@@ -210,6 +218,3 @@ def scrapeConsensusWithPaidProxies(ListOfTickersAndPrices):
                 TickerClosingLowChangeRatingList.append(new_tuple)
 
     return sorted(TickerClosingLowChangeRatingList, key=lambda x: (float(x[3].split('%')[0]), float(x[4])), reverse=True)
-
-lst = scrapeConsensusWithPaidProxies(em.TickersFromConsesusCSVtoList())
-em.createConsensusExcelSpreadsheet(lst)

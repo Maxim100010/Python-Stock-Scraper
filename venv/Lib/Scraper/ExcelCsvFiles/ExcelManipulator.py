@@ -67,7 +67,7 @@ def createTickerExcelSpreadsheet (ticker_list):
         ws['B' + str(index)] = tup[1]
         index += 1
 
-    wb.save('TickersPrices.xlsx')
+    wb.save('ExcelCsvFiles/TickersPrices'+ config['DEFAULT']['exchangetoscan'] +'.xlsx')
 
 def createConsensusExcelSpreadsheet (TickerClosingLowChangeRatingList):
     if os.path.isfile('Consensus.xlsx'):
@@ -138,7 +138,7 @@ def createConsensusExcelSpreadsheet (TickerClosingLowChangeRatingList):
         ws['E' + str(index)].fill = PatternFill("solid", fgColor=color)
         index += 1
 
-    wb.save('Consensus.xlsx')
+    wb.save('ExcelCsvFiles/Consensus.xlsx')
 
 def createTickerCSV (ticker_list):
     wb = Workbook()
@@ -158,7 +158,7 @@ def createTickerCSV (ticker_list):
 
     read_file = pd.read_excel('Temp.xlsx')
 
-    read_file.to_csv('TickersPrices.csv')
+    read_file.to_csv('ExcelCsvFiles/TickersPrices.csv')
 
     os.remove('Temp.xlsx')
 
@@ -180,13 +180,13 @@ def createTickersFromConsensusCSV (consensus_list):
 
     read_file = pd.read_excel('Temp.xlsx')
 
-    read_file.to_csv('TickersPricesFromConsensus.csv')
+    read_file.to_csv('ExcelCsvFiles/TickersPricesFromConsensus.csv')
 
     os.remove('Temp.xlsx')
 
 def TickerCSVtoList():
 
-    df = pd.read_csv('TickersPrices.csv')
+    df = pd.read_csv('ExcelCsvFiles/TickersPrices.csv')
 
     data = df[['Ticker','Price']]
 
@@ -199,7 +199,7 @@ def TickerCSVtoList():
 
 def TickersFromConsesusCSVtoList():
 
-    df = pd.read_csv('TickersPricesFromConsensus.csv')
+    df = pd.read_csv('ExcelCsvFiles/TickersPricesFromConsensus.csv')
 
     data = df[['Ticker','Price']]
 

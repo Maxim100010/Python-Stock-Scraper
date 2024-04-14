@@ -11,7 +11,7 @@ import pyarrow
 from bs4 import BeautifulSoup as bs
 from openpyxl import Workbook
 from openpyxl import load_workbook
-import ExcelManipulator as em
+import ExcelCsvFiles.ExcelManipulator as em
 
 config = configparser.ConfigParser()
 config.read('configuration.ini')
@@ -95,11 +95,3 @@ def runNYSEscrape (alphabet, ticker_list, URL_NY, closing_price_limit):
                 ticker_list.append(ticker_closingprice_tuple)
         counter += 1
     return ticker_list
-
-
-
-tlist = createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit'])
-em.createTickerExcelSpreadsheet(tlist)
-em.createTickerCSV(tlist)
-#createTickerExcelSpreadsheet(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit']))
-#print(createTickerList(config['DEFAULT']['exchangetoscan'], config['DEFAULT']['closingpricelimit']))
