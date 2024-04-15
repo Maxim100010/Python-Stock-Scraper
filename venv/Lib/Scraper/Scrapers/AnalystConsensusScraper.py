@@ -181,9 +181,6 @@ def scrapeConsensusWithPaidProxies(ListOfTickersAndPrices):
 
     for tup in ListOfTickersAndPrices:
 
-        if iteration_counter == 30:
-            break
-
         iteration_counter += 1
 
         print('Getting: ' + str(tup) + ' ' + str(iteration_counter) + '/' + str(len(ListOfTickersAndPrices)))
