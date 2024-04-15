@@ -1,17 +1,10 @@
-import datetime
 import re
 import string
 import time
 import configparser
 import requests as req
 import os
-import os.path
-import pandas as pd
-import pyarrow
 from bs4 import BeautifulSoup as bs
-from openpyxl import Workbook
-from openpyxl import load_workbook
-import ExcelCsvFiles.ExcelManipulator as em
 
 config = configparser.ConfigParser()
 config.read('configuration.ini')

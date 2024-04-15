@@ -1,8 +1,9 @@
-import Scrapers.TickerScraper as tickerscraper
-import ExcelCsvFiles.ExcelManipulator as excelmanipulator
-import Scrapers.AnalystConsensusScraper as consensusscraper
 import configparser
 import os
+
+import ExcelCsvFiles.ExcelManipulator as excelmanipulator
+import Scrapers.AnalystConsensusScraper as consensusscraper
+import Scrapers.TickerScraper as tickerscraper
 
 config = configparser.ConfigParser()
 config.read('configuration.ini')

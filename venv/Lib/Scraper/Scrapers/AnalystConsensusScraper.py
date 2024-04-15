@@ -1,13 +1,9 @@
 import datetime
-import os
-import re
 import sys
-import time
 import configparser
-from requests_ip_rotator import ApiGateway
 import requests as req
+import lxml
 from bs4 import BeautifulSoup as bs
-import ExcelCsvFiles.ExcelManipulator as em
 import Scrapers.Proxies as px
 from fake_useragent import UserAgent
 import operator

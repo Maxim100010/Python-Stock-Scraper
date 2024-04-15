@@ -1,20 +1,10 @@
 import datetime
-import re
-import string
-import time
 import configparser
-import requests as req
 import os
 import os.path
 import pandas as pd
-import pyarrow
-from bs4 import BeautifulSoup as bs
 from openpyxl import Workbook
-from openpyxl import load_workbook
-from openpyxl.worksheet.dimensions import ColumnDimension
-from openpyxl.styles import Border, Side, PatternFill, Font, GradientFill, Alignment, Color
-import operator
-
+from openpyxl.styles import PatternFill, Font, Alignment
 config = configparser.ConfigParser()
 config.read('configuration.ini')
 
