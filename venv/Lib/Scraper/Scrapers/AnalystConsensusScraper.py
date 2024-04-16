@@ -70,9 +70,21 @@ def scrapeConsensus(ListOfTickersAndPrices):
 
     TickerClosingLowChangeRatingList = []
 
-    list_of_proxies = px.createProxyList()
+    proxies = {}
 
-    if len(list_of_proxies) == 0: sys.exit('No proxies found')
+    noLinkProvided = (config["DEFAULT"]["freeproxylink"] == '')
+
+    if (noLinkProvided):
+        print("Scraping without proxies")
+
+    else:
+
+        list_of_proxies = px.createProxyList()
+
+        if len(list_of_proxies) == 0: sys.exit('No proxies found')
+
+        proxies['http'] = list_of_proxies[0][0]
+        if list_of_proxies[0][1] == True: proxies['https'] = list_of_proxies[0][0]
 
     print("Entries to scrape: " + str(len(ListOfTickersAndPrices)))
 
@@ -80,15 +92,11 @@ def scrapeConsensus(ListOfTickersAndPrices):
 
     iteration_counter = 0
 
-    proxies = {}
-
-    proxies['http'] = list_of_proxies[0][0]
-    if list_of_proxies[0][1] == True: proxies['https'] = list_of_proxies[0][0]
-
     for tup in ListOfTickersAndPrices:
-        if rotation_counter == 11:
-            rotation_counter = 0
-            proxies = rotateProxy(list_of_proxies)
+        if(not noLinkProvided):
+            if rotation_counter == 11:
+                rotation_counter = 0
+                proxies = rotateProxy(list_of_proxies)
 
         iteration_counter += 1
 

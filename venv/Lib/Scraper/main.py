@@ -33,8 +33,7 @@ if(config_as_list[5][1].lower() not in ['true', 'false']):
 if((config_as_list[4][1] == 'true' or config_as_list[5][1] == 'true') and config_as_list[6][1] == ''):
     raise Exception('If paid proxy scraping is enabled, a link to paid proxies must be provided')
 
-if((config_as_list[4][1] == 'false' or config_as_list[5][1] == 'false') and config_as_list[7][1] == ''):
-    raise Exception('If free proxy scraping is enabled, a link to free proxies must be provided')
+
 
 if(config_as_list[8][1].lower() not in ['true', 'false']):
     raise Exception('Fresh start can either be true or false')
