@@ -30,7 +30,7 @@ def extractDataFromHTML(result, result_ratings, tup):
     soup = bs(result.text, features='lxml')
     new_tuple = None
     if not 'n/a' in str(soup.find_all('td')[1]):
-        low_price = str(soup.find_all('td')[1]).split('$', 1)[1].split('<', 1)[0]
+        low_price = str(soup.find_all('td')[1]).split('$', 1)[1].split('<', 1)[0].rstrip("0").replace(",", ".")
         change = ((float(low_price) - float(tup[1])) / float(tup[1])) * 100
         rounded_change = round(change, 2)
 
