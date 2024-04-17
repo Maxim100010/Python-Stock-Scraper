@@ -1,10 +1,14 @@
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/maxim-fraňo)
+![Version 1.0.0](https://img.shields.io/badge/Version%3A%201.0.0%20-%20%2307f207)
+[![License MIT](https://img.shields.io/badge/License%3A%20MIT%20-%20%23fc0d05)](https://github.com/Maxim100010/Stock_Scraper_Python/blob/master/LICENSE)
 <h1>Python Stock  Scraper</h1>
 A web scraping tool used for getting analyst forecasts for stocks from US-based exchanges. Offers customizability, such as maximum closing price for stocks, or the ability to scrape with or without paid proxies.
 <h2>Description</h2>
 Fully Python3-based application for scraping stock tickers and analyst forecasts for stocks listed on the NYSE and NASDAQ stock exchanges. The application first scrapes ticker symbols from one website and then uses these tickers to query another website where the analyst forecast is found. Many stocks do not have an analyst forecast, in which case the query will return 404 and move to the next ticker. If a stock has a forecast, information from the forecast is extracted, primarily the future low price, as well as the average rating of the analysts who made the forecast. Lastly, after both tickers and forecasts are scraped, Excel and CSV files are created to help view the results of the scraping, as well as aid future scraping by for example not having to scrape tickers again or using already scraped forecast to only scrape stocks present in that forecast. <br>
 <details>
 <summary><h3>Technical Description</h3></summary>
-[Requirements](../blob/master/requirements.txt)
+
+Requirements can be found [here](https://github.com/Maxim100010/Stock_Scraper_Python/blob/master/requirements.txt)
 <br><br>
 <h4>Ticker scraping</h4>
 The code works alongside a proprietary config file used to determine the output and methods used within the program. At the start of the execution, the config file is checked for correctness. In most of the classes, to access the config file, the library Configparser is used. Next, scraping of stock tickers begins, here the Requests and Beautifulsoup4 libraries are used. During this scrape, we go letter by letter until we get all the ticker symbols that start with that letter. Then, using bs4, we work with the HTML code to extract the ticker symbol and the closing price. Depending on our choice in the config file, the ticker will get added to the internal list of tickers as long as its closing price is below the specified amount. During this scrape, it is also possible to use paid proxies. I did not bother including free proxies here, given that it is only 26 queries, which is unlikely to get you blocked. <br><br>
