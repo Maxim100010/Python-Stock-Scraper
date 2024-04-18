@@ -3,6 +3,7 @@ import sys
 import configparser
 import requests as req
 import lxml
+import urllib3.exceptions
 from bs4 import BeautifulSoup as bs
 import Scrapers.Proxies as px
 from fake_useragent import UserAgent
@@ -30,7 +31,7 @@ def extractDataFromHTML(result, result_ratings, tup):
     soup = bs(result.text, features='lxml')
     new_tuple = None
     if not 'n/a' in str(soup.find_all('td')[1]):
-        low_price = str(soup.find_all('td')[1]).split('$', 1)[1].split('<', 1)[0].rstrip("0").replace(",", ".")
+        low_price = str(soup.find_all('td')[1]).split('$', 1)[1].split('<', 1)[0].rstrip("0").replace(",", ".").rstrip(".")
         change = ((float(low_price) - float(tup[1])) / float(tup[1])) * 100
         rounded_change = round(change, 2)
 
@@ -195,23 +196,39 @@ def scrapeConsensusWithPaidProxies(ListOfTickersAndPrices):
 
         while True:
             try:
-                result = req.get(url + tup[0].lower() + '/forecast', proxies=proxies)
+                result = req.get(url + tup[0].lower() + '/forecast', proxies=proxies, timeout=10)
                 if result.status_code == 200 or result.status_code == 404:
                     break
             except req.exceptions.ProxyError:
                 print('Proxy Error')
             except req.exceptions.SSLError:
                 print('Proxy Error')
+            except req.exceptions.Timeout:
+                print('Timed out')
+            except req.exceptions.ReadTimeout:
+                print('Timed out')
+            except urllib3.exceptions.ReadTimeoutError:
+                print('Timed out')
+            except req.exceptions.ConnectionError:
+                print('Timed out')
         if result.status_code == 200:
             while True:
                 try:
-                    result_ratings = req.get(url + tup[0].lower() + '/ratings', proxies=proxies)
+                    result_ratings = req.get(url + tup[0].lower() + '/ratings', proxies=proxies, timeout=10)
                     if result_ratings.status_code == 200 or result_ratings.status_code == 404:
                         break
                 except req.exceptions.ProxyError:
                     print('Proxy Error')
                 except req.exceptions.SSLError:
                     print('Proxy Error')
+                except req.exceptions.Timeout:
+                    print('Timed out')
+                except req.exceptions.ReadTimeout:
+                    print('Timed out')
+                except urllib3.exceptions.ReadTimeoutError:
+                    print('Timed out')
+                except req.exceptions.ConnectionError:
+                    print('Timed out')
         print(result.status_code)
         if result.status_code == 200:
             new_tuple = extractDataFromHTML(result, result_ratings, tup)
