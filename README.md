@@ -1,5 +1,5 @@
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/maxim-fraňo)
-![Version 1.0.0](https://img.shields.io/badge/Version%3A%201.0.0%20-%20%2307f207)
+![Version 1.0.1](https://img.shields.io/badge/Version%3A%201.0.1%20-%20%2307f207)
 [![License MIT](https://img.shields.io/badge/License%3A%20MIT%20-%20%23fc0d05)](https://github.com/Maxim100010/Stock_Scraper_Python/blob/master/LICENSE)
 <h1>Python Stock  Scraper</h1>
 A web scraping tool used for getting analyst forecasts for stocks from US-based exchanges. Offers customizability, such as maximum closing price for stocks, or the ability to scrape with or without paid proxies.
